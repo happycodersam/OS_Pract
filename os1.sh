@@ -32,6 +32,10 @@ while true;
             read empid empname dept
             echo "$empid $empname $dept" >> "$filename"
             echo "Record added."
+            if grep -q "^$id:" "$file"; then
+                echo "A record with this ID already exists."
+                return
+                fi
             ;;
         3)
             echo "Content of file:"

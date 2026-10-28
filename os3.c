@@ -4,39 +4,29 @@
 #include <stdlib.h>
 
 int main() {
-    int pid = fork();
+    int ch;
+    printf("1. Zombie\n2. Orphan\nChoice: ");
+    scanf("%d", &ch);
 
-    if (pid == 0) {
-        printf("CHILD PROCESS PID : %d\n", getpid());
-        printf("PARENT PROCESS PPID : %d\n", getppid());
-        exit(0);
-    } else if (pid > 0) {
-        sleep(2);
-        printf("\n********ZOMBIE STATE********\n");
-        // printf("UID   PID   PPID   C PRI NI ADDR SZ WCHAN TTY TIME CMD\n");
-        char cmd[100];
-        sprintf(cmd, " -p %d", pid);
-        sprintf(cmd, "ps -o uid,pid,ppid,c,pri,ni,addr,sz,wchan,tty,time,cmd -p %d", pid);
-        system(cmd);
+    pid_t pid = fork();
+
+    if (pid < 0) return 1;
+
+    if (ch == 1) {
+        if (pid == 0) exit(0);
+        printf("Parent: PID = %d, Child = %d\n", getpid(), pid);
+        sleep(10);
         wait(NULL);
+        printf("Zombie removed.\n");
     } else {
-        printf("Error in fork\n");
-        return 1;
+        if (pid == 0) {
+            sleep(3);
+            printf("Child: PID = %d, New Parent = %d\n",
+                   getpid(), getppid());
+        } else {
+            printf("Parent exiting: PID = %d\n", getpid());
+            exit(0);
+        }
     }
-
-    pid = fork();
-
-    if (pid == 0) {
-        sleep(2);
-        printf("\n********ORPHAN STATE********\n");
-        printf("CHILD PROCESS PID : %d\n", getpid());
-        printf("PARENT PROCESS PPID : %d\n", getppid());
-    } else if (pid > 0) {
-        printf("TERMINATED CHILD PID : %d\n", pid);
-        printf("PARENT PID (MAIN) : %d\n", getpid());
-        printf("PARENTS PARENT PPID (BASH) : %d\n", getppid());
-        exit(0);
-    }
-
     return 0;
 }

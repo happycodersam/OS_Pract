@@ -1,39 +1,48 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
 
-int buffer[5], in = 0, out = 0, count = 0;
-sem_t empty, full;
-pthread_mutex_t mutex;
+#define SIZE 5
+#define ITEMS 10
+
+int buffer[SIZE];
+int in = 0, out = 0;
+
+sem_t empty;               /* counts empty slots */
+sem_t full;                /* counts filled slots */
+pthread_mutex_t mutex;     /* protects the buffer */
 
 void *producer(void *arg) {
-    for (int i = 1; i <= 5; i++) {
+    int i;
+    for (i = 1; i <= ITEMS; i++) {
         sem_wait(&empty);
         pthread_mutex_lock(&mutex);
 
         buffer[in] = i;
-        in = (in + 1) % 5;
-        count++;
-        printf("Producer produced item %d. Items left in buffer: %d\n", i, count);
+        printf("Producer produced item %d at position %d\n", i, in);
+        in = (in + 1) % SIZE;
 
         pthread_mutex_unlock(&mutex);
         sem_post(&full);
+        sleep(1);
     }
     return NULL;
 }
 
 void *consumer(void *arg) {
-    for (int i = 1; i <= 5; i++) {
+    int i, item;
+    for (i = 1; i <= ITEMS; i++) {
         sem_wait(&full);
         pthread_mutex_lock(&mutex);
 
-        int item = buffer[out];
-        out = (out + 1) % 5;
-        count--;
-        printf("Consumer consumed item %d. Items left in buffer: %d\n", item, count);
+        item = buffer[out];
+        printf("Consumer consumed item %d from position %d\n", item, out);
+        out = (out + 1) % SIZE;
 
         pthread_mutex_unlock(&mutex);
         sem_post(&empty);
+        sleep(2);
     }
     return NULL;
 }
@@ -41,7 +50,7 @@ void *consumer(void *arg) {
 int main() {
     pthread_t p, c;
 
-    sem_init(&empty, 0, 5);
+    sem_init(&empty, 0, SIZE);
     sem_init(&full, 0, 0);
     pthread_mutex_init(&mutex, NULL);
 

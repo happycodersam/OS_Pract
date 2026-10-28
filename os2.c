@@ -15,33 +15,38 @@ void sort(int a[], int n, int desc) {
 
 void print(int a[], int n) {
     for (int i = 0; i < n; i++)
-        printf("%d\t", a[i]);
+        printf("%d ", a[i]);
     printf("\n");
 }
 
 int main() {
     int a[10], n;
+
     printf("Enter number of integers: ");
     scanf("%d", &n);
 
-    printf("Enter integers: ");
+    printf("Enter %d integers: ", n);
     for (int i = 0; i < n; i++)
         scanf("%d", &a[i]);
 
     pid_t pid = fork();
 
     if (pid == 0) {
-        sort(a, n, 0);
-        printf("\nI am Child Process, my PID is %d\n", getpid());
-        printf("Array in ascending order:\n");
-        print(a, n);
-    } else if (pid > 0) {
-        wait(NULL);
         sort(a, n, 1);
-        printf("\nI am Parent Process, my PID is %d\n", getpid());
-        printf("Array in descending order:\n");
+        printf("\n[Child] PID = %d, Parent PID = %d\n",
+               getpid(), getppid());
+        printf("[Child] Sorted in descending order: ");
         print(a, n);
-    } else {
+    } 
+    else if (pid > 0) {
+        sort(a, n, 0);
+        printf("\n[Parent] PID = %d, Child PID = %d\n",
+               getpid(), pid);
+        printf("[Parent] Sorted in ascending order: ");
+        print(a, n);
+        wait(NULL);
+    } 
+    else {
         printf("Error in fork!\n");
     }
 
